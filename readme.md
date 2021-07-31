@@ -3,7 +3,7 @@ Git Deploy is a lightweight HTTP micro-service that allows you to securely deplo
 
 Fundementally different to pushing code, Git Deploy pulls the code from existing git repositories on the target file systems and runs build scripts locally via a simple RESTful API that has support of many webhook providers
 
-## Planned
+## Features
 - Providers:
     - GitHub Webhooks
     - Azure Webhooks
@@ -29,6 +29,10 @@ Fundementally different to pushing code, Git Deploy pulls the code from existing
     - Deployments will be able to switch branches (configurable) based on the API/Webhook provider
 - Basic Run Scripts
     - While this project is intended to **only manage deployments and builds**, some simple scripts should be allowed to restart certain applications (npm, dotnet, docker)
+
+## Planned / Progress
+
+See a complete list of planned features and their current state in the [TODO](TODO.md).
 
 ## Not Planned
 
