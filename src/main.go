@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"net/http"
@@ -9,9 +10,28 @@ import (
 )
 
 var (
-	config   globalConfig
-	projects map[string]*project
+	configPath string
+	config     globalConfig
 )
+
+//loadProject loads the configuration and finds the appropriate project.
+func loadProject(name string) (*project, error) {
+	// Load the configuration
+	configData, configError := loadConfiguration(configPath)
+	config = configData
+	if configError != nil {
+		log.Fatalln("Failed to parse configuration", configError)
+	}
+
+	// Find the correct project
+	for _, pconfig := range config.Projects {
+		if pconfig.Name == name {
+			return newProject(pconfig), nil
+		}
+	}
+
+	return nil, errors.New("failed to find the project")
+}
 
 func main() {
 	// Prepare the flags
@@ -20,26 +40,23 @@ func main() {
 	deployPtr := flag.String("deploy", "", "project to immediately deploy and then abort")
 	flag.Parse()
 
-	// Load the configuration
-	configData, configError := loadConfiguration(*configPathPtr)
-	config = configData
-	if configError != nil {
-		log.Fatalln("Failed to parse configuration", configError)
-	}
-
-	// Setup the projects
-	projects = make(map[string]*project, len(config.Projects))
-	for _, pconfig := range config.Projects {
-		projects[pconfig.Name] = newProject(pconfig)
-	}
+	// Set config path
+	configPath = *configPathPtr
 
 	// If we are early deploying, then do so
 	if *deployPtr != "" {
 		log.Printf("Deploying '%s'\n", *deployPtr)
-		deployError := projects[*deployPtr].deploy()
+		project, err := loadProject(*deployPtr)
+		if err != nil {
+			log.Fatalln("cannot find the project:", err)
+			return
+		}
+
+		deployError := project.deploy()
 		if deployError != nil {
 			log.Fatalln("Failed to deploy", deployError)
 		}
+
 		return
 	}
 
