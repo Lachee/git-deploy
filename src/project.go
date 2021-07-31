@@ -1,5 +1,8 @@
 package main
 
+//TODO:
+// * use this file for SSH stuff https://github.com/melbahja/goph
+
 import (
 	"fmt"
 	"io/ioutil"
@@ -52,7 +55,6 @@ func (p *project) getBranch() string {
 
 func (p *project) deploy() error {
 
-	// TODO: Establish an SSH connection
 	var localConfig localProjectConfig
 	var deployConfig deployConfig
 	var err error
@@ -60,7 +62,7 @@ func (p *project) deploy() error {
 	cwd, _ := os.Getwd()
 	defer os.Chdir(cwd)
 
-	//TODO: Setup SSH
+	// TODO: Establish an SSH connection
 	os.Chdir(p.config.ProjectDirectory)
 
 	// Read the configuration
@@ -94,10 +96,28 @@ func (p *project) deploy() error {
 	//TODO: Setup enviroment variables
 
 	//Run the deployer
-	deployer.deploy()
+
+	env := p.buildEnviromentVariables(deployConfig)
+	deployer.deploy(p.config.ProjectDirectory, env)
 
 	// Prepare the correct loader type
 	//deployer := createDeployer(config.)
 
 	return nil
+}
+
+//buildEnviromentVariables returns a map of all enviromental variables
+func (p *project) buildEnviromentVariables(deploy deployConfig) []string {
+	enviros := []string{}
+	for k, v := range deploy.EnviromentVariables {
+		if k != "" {
+			enviros = append(enviros, k+"="+v)
+		}
+	}
+	for k, v := range p.config.EnviromentVariables {
+		if k != "" {
+			enviros = append(enviros, k+"="+v)
+		}
+	}
+	return enviros
 }

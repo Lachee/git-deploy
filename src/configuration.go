@@ -35,14 +35,14 @@ func (config globalConfig) check() (globalConfig, error) {
 
 //projectConfig holds the configuration for a individual project
 type projectConfig struct {
-	Name             string            `yaml:"name"`
-	ProjectDirectory string            `yaml:"project"`
-	ConfigPath       string            `yaml:"config"`
-	Secret           string            `yaml:"secret"`
-	Providers        []string          `yaml:"providers"`
-	Webhook          string            `yaml:"webhook"`
-	Env              map[string]string `yaml:"env"`
-	SSH              sshConfig         `yaml:"ssh"`
+	Name                string            `yaml:"name"`
+	ProjectDirectory    string            `yaml:"project"`
+	ConfigPath          string            `yaml:"config"`
+	Secret              string            `yaml:"secret"`
+	Providers           []string          `yaml:"providers"`
+	Webhook             string            `yaml:"webhook"`
+	EnviromentVariables map[string]string `yaml:"env"`
+	SSH                 sshConfig         `yaml:"ssh"`
 }
 
 //check setup the defaults for the configuration and throws an error if invalid
