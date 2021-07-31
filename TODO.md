@@ -17,3 +17,6 @@
 []  Refactor code so its neater
 []  Implement DOTNET
 []  Implement Docker
+
+# Nice to haves
+[]  ~~Web Based configuration?~~ This is part of the Not-Planned list
