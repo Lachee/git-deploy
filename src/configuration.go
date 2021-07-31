@@ -69,6 +69,15 @@ type localProjectConfig struct {
 
 //check setup the defaults for the configuration and throws an error if invalid
 func (config localProjectConfig) check() (localProjectConfig, error) {
+	// Check all the children
+	for i, element := range config.Deploys {
+		c, e := element.check()
+		if e != nil {
+			return config, e
+		}
+		config.Deploys[i] = c
+	}
+
 	return config, nil
 }
 
@@ -81,12 +90,18 @@ type deployConfig struct {
 	PreScript  string `yaml:"pre"`
 	PostScript string `yaml:"post"`
 
-	Use  string                      `yaml:"use"`
-	With map[interface{}]interface{} `yaml:"with"`
+	Use  string                 `yaml:"use"`
+	With map[string]interface{} `yaml:"with"`
 }
 
 //check setup the defaults for the configuration and throws an error if invalid
 func (config deployConfig) check() (deployConfig, error) {
+	if config.EnviromentVariables == nil {
+		config.EnviromentVariables = make(map[string]string)
+	}
+	if config.With == nil {
+		config.With = make(map[string]interface{})
+	}
 	return config, nil
 }
 

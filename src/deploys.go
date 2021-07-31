@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os/exec"
 
 	"gopkg.in/yaml.v2"
 )
@@ -16,7 +15,7 @@ type sshDeploy struct {
 	deploy deployer
 }
 
-func createDeployer(name string, with map[interface{}]interface{}) deployer {
+func createDeployer(name string, with map[string]interface{}) deployer {
 	var d deployer = nil
 	switch name {
 	case "script":
@@ -48,16 +47,9 @@ type scriptDeploy struct {
 }
 
 func (d *scriptDeploy) deploy() {
-	var cmd *exec.Cmd
-	args := []string{d.Script}
-	args = append(args, d.Args...)
-	if d.Shell == "" {
-		cmd = exec.Command("bash", args...)
-	} else {
-		cmd = exec.Command(d.Shell, args...)
-	}
-
 	log.Printf("Executing %s\n", d.Script)
+
+	cmd := shellCommand(d.Shell, d.Script, d.Args...)
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalln(err)
