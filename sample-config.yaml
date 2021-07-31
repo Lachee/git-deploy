@@ -4,7 +4,7 @@ projects:
   - name: lachee.dev                            # Name of the project
     project: /var/www/html/lachee.dev/          # CWD of the proeject
     config: ./git-deploy.yaml                   # Relative path of the configuration
-    key: ASj2w@jn@NJFK                          # The API key for the API and webhooks
+    secret: ASj2w@jn@NJFK                       # The API key for the API and webhooks
     providers:                                  # List of providers allowed to use this 
       - github
       - azure
@@ -19,6 +19,7 @@ projects:
       host: 192.168.1.12                                      # Host address
       user: lachee                                            # Host user
       key:  /home/USER/.ssh/id_xve                            # SSH key used to login
+    secret: ASj2w@jn@NJFK                                     # The API key for the API and webhooks
     project: /home/USER/xve/                                  # CWD of the project
     config: ./git-deploy.yaml                                 # Relative path of the configuration
 
@@ -37,42 +38,55 @@ projects:
 
 # Example configuration
 deploys:
-  # Name of the job (for logging purposes)
+  # Define a new group, with the name master
   - name: website
-
-    # List of branches this job runs on
-    branches:
-      master
-
-    # Enviroment variables used in the building process
+    
+    # The branches it can deploy to
+    branches: [ master ]
+    
+    # The enviroment variables it can deploy to
     env:
       MODE: production
       HIDE_SKILLS: true
       HIDE_PLATFORMS: true
     
-    # pre & post is a simple bash that runs before and after the main build
-    pre:  ./pre-clean.sh
-    post: ./post-clean.sh # Optional: Script used to run
+    # pre and post commands
+    pre:
+    post:
 
-    # Runs a script to build
-    type: script
-    build: ./build.sh   # Script to build
-    # /bin/bash ./build.sh && /bin/bash ./run.sh
+    # The deployer and its settings
+    use: npm
+    with:
+      script: build
+      project: some_project
 
-    # Runs composer build
-    type: composer
-    build: build          # Optional: name of the composer script to run
-    # composer $build
 
-    # Runs NPM build
-    type: npm
-    build: build          # Optional: name of the NPM script to run
-    # npm i && npm run $build
 
-    # Runs dotnet projects
-    type: dotnet
-    project: some_project # Name of the project to build
-    # dotnet build some_project
+# Additional Example Deployers
+# Runs a script to build
+use: script
+with: 
+  script: ./build.sh # Script to build
 
-    type: docker
-    # TODO: Figure out how to run a docker container
+# Runs a script
+use: ./build.sh
+
+# Runs composer build
+use: composer
+with: 
+  script: build # Optional: name of the composer script to run
+
+# Runs NPM build
+use: npm
+with: 
+  script: build # Optional: name of the NPM script to run
+
+# Runs dotnet projects
+use: dotnet
+with: 
+  project: some_project # Name of the project to build
+
+# Runs a docker project
+use: docker
+with:
+  # TODO: Figure out how to run a docker container

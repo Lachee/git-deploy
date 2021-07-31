@@ -1,0 +1,23 @@
+deploys:
+
+  # Define a new group, with the name master
+  - name: website
+    
+    # The branches it can deploy to
+    branches: [ master ]
+    
+    # The enviroment variables it can deploy to
+    env:
+      MODE: production
+      HIDE_SKILLS: true
+      HIDE_PLATFORMS: true
+    
+    # pre and post commands
+    pre:
+    post:
+
+    # The deployer and its settings
+    use: npm
+    with:
+      build: build
+      project: some_project
