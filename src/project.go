@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -25,6 +26,7 @@ func (p *project) hasSSH() bool {
 
 //readLocalConfig reads the configuration from the project
 func (p *project) readLocalConfig() (localProjectConfig, error) {
+
 	config := localProjectConfig{}
 
 	// Read the data
@@ -55,6 +57,12 @@ func (p *project) deploy() error {
 	var deployConfig deployConfig
 	var err error
 
+	cwd, _ := os.Getwd()
+	defer os.Chdir(cwd)
+
+	//TODO: Setup SSH
+	os.Chdir(p.config.ProjectDirectory)
+
 	// Read the configuration
 	localConfig, err = p.readLocalConfig()
 	if err != nil {
@@ -76,18 +84,17 @@ func (p *project) deploy() error {
 	}
 
 	//Establish a deployer. If none was found assume it was a script
-	deployer := createDeployer(deployConfig.Use)
+	deployer := createDeployer(deployConfig.Use, deployConfig.With)
 	if deployer == nil {
-		deployer = &scriptDeploy{
-			script: deployConfig.Use,
-		}
+		deployConfig.With["script"] = deployConfig.Use
+		deployer = createDeployer("script", deployConfig.With)
 	}
 
 	//TODO: Update git repo
 	//TODO: Setup enviroment variables
 
 	//Run the deployer
-	deployer.deploy(deployConfig.With)
+	deployer.deploy()
 
 	// Prepare the correct loader type
 	//deployer := createDeployer(config.)

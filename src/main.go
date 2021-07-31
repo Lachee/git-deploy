@@ -35,8 +35,11 @@ func main() {
 
 	// If we are early deploying, then do so
 	if *deployPtr != "" {
-		log.Printf("Deploying %s/\n", *deployPtr)
-		projects[*deployPtr].deploy()
+		log.Printf("Deploying '%s'\n", *deployPtr)
+		deployError := projects[*deployPtr].deploy()
+		if deployError != nil {
+			log.Fatalln("Failed to deploy", deployError)
+		}
 		return
 	}
 

@@ -1,9 +1,14 @@
 package main
 
-import "log"
+import (
+	"log"
+	"os/exec"
+
+	"gopkg.in/yaml.v2"
+)
 
 type deployer interface {
-	deploy(opts map[string]string)
+	deploy()
 }
 
 type sshDeploy struct {
@@ -11,10 +16,12 @@ type sshDeploy struct {
 	deploy deployer
 }
 
-func createDeployer(name string) deployer {
+func createDeployer(name string, with map[interface{}]interface{}) deployer {
+	var d deployer = nil
 	switch name {
 	case "script":
-		return &scriptDeploy{}
+		d = &scriptDeploy{}
+		break
 		// case "composer":
 		// 	return &composerDeploy{}
 		// case "npm":
@@ -25,16 +32,37 @@ func createDeployer(name string) deployer {
 		// 	return &dockerDeploy{}
 	}
 
-	log.Printf("error: there is no deployer for %s\n", name)
-	return nil
+	if d == nil {
+		log.Printf("error: there is no deployer for %s\n", name)
+		return nil
+	}
+	data, _ := yaml.Marshal(with)
+	yaml.Unmarshal([]byte(data), d)
+	return d
 }
 
 type scriptDeploy struct {
-	script string
+	Shell  string
+	Script string
+	Args   []string
 }
 
-func (d *scriptDeploy) deploy(opts map[string]string) {
+func (d *scriptDeploy) deploy() {
+	var cmd *exec.Cmd
+	args := []string{d.Script}
+	args = append(args, d.Args...)
+	if d.Shell == "" {
+		cmd = exec.Command("bash", args...)
+	} else {
+		cmd = exec.Command(d.Shell, args...)
+	}
 
+	log.Printf("Executing %s\n", d.Script)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Printf("Finished %s\n", d.Script)
 }
 
 type composerDeploy struct {

@@ -10,7 +10,8 @@
             "request": "launch",
             "mode": "auto",
             "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/src"
+            "program": "${workspaceFolder}/src",
+            "args": [ "-deploy", "lachee.dev" ]
         },
     ]
 }

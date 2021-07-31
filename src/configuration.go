@@ -81,8 +81,8 @@ type deployConfig struct {
 	PreScript  string `yaml:"pre"`
 	PostScript string `yaml:"post"`
 
-	Use  string            `yaml:"use"`
-	With map[string]string `yaml:"with"`
+	Use  string                      `yaml:"use"`
+	With map[interface{}]interface{} `yaml:"with"`
 }
 
 //check setup the defaults for the configuration and throws an error if invalid
