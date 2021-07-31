@@ -38,3 +38,5 @@ Fundementally different to pushing code, Git Deploy pulls the code from existing
     - Use apache, k8', or anything else, to handle your projects. This is just a simple deploy script
 - Build Actions
     - All build scripts are just that, bash scripts. Advance features such as "actions" can be provided by a local [GitHub Action Runner](https://github.com/actions/runner)
+- Pushing builds to servers
+    - This is specifically for _git_ projects. Pushing code is a security concern and requires more effort into securing the API with things such as checksums and encryption. The idea of this project is to take a HTTP request and do a `git pull` from that, effectively making it so it never downloads arbitary code.
