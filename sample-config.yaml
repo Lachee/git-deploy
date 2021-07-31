@@ -1,0 +1,78 @@
+projects:
+
+  # Basic configuration
+  - name: lachee.dev                            # Name of the project
+    project: /var/www/html/lachee.dev/          # CWD of the proeject
+    config: ./git-deploy.yaml                   # Relative path of the configuration
+    key: ASj2w@jn@NJFK                          # The API key for the API and webhooks
+    providers:                                  # List of providers allowed to use this 
+      - github
+      - azure
+      - api
+    webhook: https://discord.gg/token/          # URL to the discord webhook to publish build information
+    env:                                        # Enviroment Variables to set before build. These will override the configuration enviromental variables.
+      PROFILE_IMAGE: https://i.lu.je/2021/chrome_7Lh9OShqhJ.png 
+
+  # Configuration via SSH
+  - name: xve
+    ssh:                                                      # When SSH is given, GitDeploy will establish a connection to the project directory on the remote
+      host: 192.168.1.12                                      # Host address
+      user: lachee                                            # Host user
+      key:  /home/USER/.ssh/id_xve                            # SSH key used to login
+    project: /home/USER/xve/                                  # CWD of the project
+    config: ./git-deploy.yaml                                 # Relative path of the configuration
+
+  # # Basic configuration, showing that the config can be objects too
+  # - name: lachee.dev
+  #   config: 
+  #     deploys:
+  #     - name: master
+  #       env:
+  #       setup: npm i
+  #       build: ./build.sh
+  #       post: 
+
+
+
+
+# Example configuration
+deploys:
+  # Name of the job (for logging purposes)
+  - name: website
+
+    # List of branches this job runs on
+    branches:
+      master
+
+    # Enviroment variables used in the building process
+    env:
+      MODE: production
+      HIDE_SKILLS: true
+      HIDE_PLATFORMS: true
+    
+    # pre & post is a simple bash that runs before and after the main build
+    pre:  ./pre-clean.sh
+    post: ./post-clean.sh # Optional: Script used to run
+
+    # Runs a script to build
+    type: script
+    build: ./build.sh   # Script to build
+    # /bin/bash ./build.sh && /bin/bash ./run.sh
+
+    # Runs composer build
+    type: composer
+    build: build          # Optional: name of the composer script to run
+    # composer $build
+
+    # Runs NPM build
+    type: npm
+    build: build          # Optional: name of the NPM script to run
+    # npm i && npm run $build
+
+    # Runs dotnet projects
+    type: dotnet
+    project: some_project # Name of the project to build
+    # dotnet build some_project
+
+    type: docker
+    # TODO: Figure out how to run a docker container
