@@ -56,7 +56,9 @@ func (p *project) getBranch(sys system) string {
 }
 
 //updateRepository performs a series of actions to update the codebase
-func (p *project) updateRepository() (bool, error) {
+func (p *project) updateRepository(sys system) (bool, error) {
+	return true, nil
+
 	if p.config.Update != "" {
 		// TODO: Execute p.config.Update
 		cmd := shellCommand("", p.config.Update)
@@ -115,7 +117,7 @@ func (p *project) deploy() error {
 	}
 
 	// Update the repository, if there was changes reload the configuration
-	gitChanged, gitError := p.updateRepository()
+	gitChanged, gitError := p.updateRepository(sys)
 	if gitError != nil {
 		return gitError
 	}

@@ -45,6 +45,7 @@ func (system *localSystem) rootDirectory() string { return system.root }
 func (system *localSystem) exec(cmd string, args ...string) ([]byte, error) {
 	os.Chdir(system.rootDirectory())
 	execCMD := exec.Command(cmd, args...)
+	execCMD.Env = system.getEnviromentVariables()
 	return execCMD.Output()
 }
 
@@ -55,6 +56,7 @@ func (system *localSystem) execShell(shell string, cmd string, args ...string) (
 		shell = DEFAULT_SHELL
 	}
 	execCMD := exec.Command(shell, append([]string{cmd}, args...)...)
+	execCMD.Env = system.getEnviromentVariables()
 	return execCMD.Output()
 }
 
@@ -70,4 +72,9 @@ func (system *localSystem) read(filePath string) ([]byte, error) {
 //setEnviromentVariables sets the _additional_ enviroment variables to be sent to commands
 func (system *localSystem) setEviromentVariables(envs []string) {
 	system.envs = envs
+}
+
+//getEnviromentVariables gets the current variables
+func (system *localSystem) getEnviromentVariables() []string {
+	return append(os.Environ(), system.envs...)
 }

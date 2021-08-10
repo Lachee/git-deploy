@@ -49,16 +49,12 @@ type scriptDeploy struct {
 func (d *scriptDeploy) deploy(sys system) {
 	log.Printf("Executing %s\n", d.Script)
 
-	//_, error := sys.execShell(d.Shell, d.Script, d.Args...)
+	_, err := sys.execShell(d.Shell, d.Script, d.Args...)
+	if err != nil {
+		log.Println("Failed to deploy script", d.Script, err)
+		return
+	}
 
-	/*
-		cmd := shellCommand(d.Shell, d.Script, d.Args...)
-		cmd.Env = env
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalln(err)
-		}
-	*/
 	log.Printf("Finished %s\n", d.Script)
 }
 
@@ -71,37 +67,30 @@ type npmDeploy struct {
 
 func (d *npmDeploy) deploy(sys system) {
 
-	/*
-		// Setup the default
-		script := d.Script
-		if script == "" {
-			script = "build"
-		}
+	// Setup the default
+	script := d.Script
+	if script == "" {
+		script = "build"
+	}
 
-		// Execute
-		log.Printf("Executing NPM Deploy %s\n", script)
-		var err error
-		var result []byte
+	var err error
+	var result []byte
 
-		env = append(os.Environ(), env...)
-		npmiCMD := exec.Command("npm", "i")
-		npmiCMD.Env = env
-		npmRun := exec.Command("npm", "run", script)
-		npmRun.Env = env
+	log.Printf("Executing NPM Install\n")
+	_, err = sys.exec("npm", "i")
+	if err != nil {
+		log.Println("failed to install dependencies", err)
+		return
+	}
 
-		err = npmiCMD.Run()
-		if err != nil {
-			log.Fatalln("Failed to install dependencies: ", err)
-			return
-		}
+	log.Printf("Executing NPM Deploy %s\n", script)
+	result, err = sys.exec("npm", "run", script)
+	if err != nil {
+		log.Println("failed to run script", err)
+		return
+	}
 
-		result, err = npmRun.CombinedOutput()
-		if err != nil {
-			msg := string(result)
-			log.Fatalln("Failed to build: ", err, msg)
-			return
-		}
-	*/
+	log.Println("finished running script", string(result))
 }
 
 type dotnetDeploy struct {

@@ -14,14 +14,15 @@ var (
 	config     globalConfig
 )
 
-func test() {
+func test() bool {
 	system := newLocalSystem("C:/Users/lachl/go/src/github.com/lachee/git-deploy")
 	branch, err := gitCurrentBranch(system)
 	if err != nil {
 		log.Fatalln("Failed to get the current branch", err)
-		return
+		return false
 	}
 	log.Println("Branch", branch)
+	return false
 }
 
 //loadProject loads the configuration and finds the appropriate project.
@@ -56,8 +57,10 @@ func main() {
 
 	if *testPtr {
 		log.Println("Testing Function")
-		test()
-		return
+		if test() {
+			log.Println("Aborted test")
+			return
+		}
 	}
 
 	// If we are early deploying, then do so
@@ -71,7 +74,7 @@ func main() {
 
 		deployError := project.deploy()
 		if deployError != nil {
-			log.Fatalln("Failed to deploy", deployError)
+			log.Fatalln("Failed to deploy: ", deployError)
 		}
 
 		return
