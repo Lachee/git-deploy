@@ -13,6 +13,18 @@ projects:
     env:                                        # Enviroment Variables to set before build. These will override the configuration enviromental variables.
       PROFILE_IMAGE: https://i.lu.je/2021/chrome_7Lh9OShqhJ.png 
 
+    # Invoked to update the code base on remote machine. 
+    # - This will override the built in method which tries to stash existing changes first,
+    #    so ensure you take nessary precautions to update without loosing local changes.
+    # - This is invoked within the project directory (including over SSH), so local scripts will not work.
+    # - The local config may also update itself in the `pre` property.
+    update: |                                   
+      git stash                                 
+      git pull
+      git stash pop
+  
+
+
   # Configuration via SSH
   - name: xve
     ssh:                                                      # When SSH is given, GitDeploy will establish a connection to the project directory on the remote

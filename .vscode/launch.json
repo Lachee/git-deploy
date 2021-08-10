@@ -11,7 +11,7 @@
             "mode": "auto",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/src",
-            "args": [ "-deploy", "lachee.dev" ]
+            "args": [ "-deploy", "lachee.dev", "-test", "true" ]
         },
     ]
 }

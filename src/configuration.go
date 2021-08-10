@@ -43,6 +43,7 @@ type projectConfig struct {
 	Webhook             string            `yaml:"webhook"`
 	EnviromentVariables map[string]string `yaml:"env"`
 	SSH                 sshConfig         `yaml:"ssh"`
+	Update              string            `yaml:"update"`
 }
 
 //check setup the defaults for the configuration and throws an error if invalid

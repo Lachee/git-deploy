@@ -14,6 +14,16 @@ var (
 	config     globalConfig
 )
 
+func test() {
+	system := newLocalSystem("C:/Users/lachl/go/src/github.com/lachee/git-deploy")
+	branch, err := gitCurrentBranch(system)
+	if err != nil {
+		log.Fatalln("Failed to get the current branch", err)
+		return
+	}
+	log.Println("Branch", branch)
+}
+
 //loadProject loads the configuration and finds the appropriate project.
 func loadProject(name string) (*project, error) {
 	// Load the configuration
@@ -38,10 +48,17 @@ func main() {
 	addrPtr := flag.String("address", "localhost:7096", "IP address to bind the HTTP server to")
 	configPathPtr := flag.String("config", "./config.yaml", "path to the configuration")
 	deployPtr := flag.String("deploy", "", "project to immediately deploy and then abort")
+	testPtr := flag.Bool("test", false, "Runs a test function")
 	flag.Parse()
 
 	// Set config path
 	configPath = *configPathPtr
+
+	if *testPtr {
+		log.Println("Testing Function")
+		test()
+		return
+	}
 
 	// If we are early deploying, then do so
 	if *deployPtr != "" {
