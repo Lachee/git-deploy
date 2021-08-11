@@ -14,6 +14,7 @@
 - [ ] Implement Pre and Post runs.
 - [ ] Reload the configuration once we pull the changes
 - [ ] Implement a logging framework
+- [ ] List of deploy names to execute. 
 
 # Complete Later
 - [ ] Add SSH support

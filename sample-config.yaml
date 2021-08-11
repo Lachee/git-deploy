@@ -12,6 +12,7 @@ projects:
     webhook: https://discord.gg/token/          # URL to the discord webhook to publish build information
     env:                                        # Enviroment Variables to set before build. These will override the configuration enviromental variables.
       PROFILE_IMAGE: https://i.lu.je/2021/chrome_7Lh9OShqhJ.png 
+    deploys: [ "website" ]                      # If not empty, it will limit which deploy configuration to execute. Useful for multiple target machines but 1 project.
 
     # Invoked to update the code base on remote machine. 
     # - This will override the built in method which tries to stash existing changes first,
