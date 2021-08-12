@@ -23,6 +23,7 @@
 - [ ] Tell CloudFlare to clear cache
 - [ ] Implement DOTNET
 - [ ] Implement Docker
+- [ ] Custom PULL scripts on the project
 
 # Nice to haves
 - [ ] ~~Web Based configuration?~~ This is part of the Not-Planned list
