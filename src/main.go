@@ -90,7 +90,7 @@ func createRouter() http.Handler {
 	router.HandleFunc("/{project}/deploy/{provider}", routeProvider).
 		Methods("POST")
 
-	lmt := tollbooth.NewLimiter(0.5, nil)
+	lmt := tollbooth.NewLimiter(1.0/30.0, nil)
 	lmt.
 		SetIPLookups([]string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"}).
 		SetMethods([]string{"POST", "PUT"})
