@@ -127,7 +127,7 @@ func routeProvider(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Ensure the provider is correct
-	verified := provider.verify(project.config.Secret, w, r)
+	verified := provider.verify([]byte(project.config.Secret), w, r)
 	if !verified {
 		w.Header().Add("X-Reason", "Not authorized")
 		w.WriteHeader(http.StatusUnauthorized)

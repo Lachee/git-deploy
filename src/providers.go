@@ -7,7 +7,7 @@ import (
 )
 
 type provider interface {
-	verify(secret string, w http.ResponseWriter, r *http.Request) bool
+	verify(secret []byte, w http.ResponseWriter, r *http.Request) bool
 }
 
 func createProvider(name string) provider {
@@ -29,7 +29,7 @@ func createProvider(name string) provider {
 type webProvider struct {
 }
 
-func (p *webProvider) verify(secret string, w http.ResponseWriter, r *http.Request) bool {
+func (p *webProvider) verify(secret []byte, w http.ResponseWriter, r *http.Request) bool {
 	key := r.Header.Get("X-API-Key")
 	if key == "" {
 		w.Header().Add("X-Reason", "No X-API-KEY supplied")
@@ -40,5 +40,5 @@ func (p *webProvider) verify(secret string, w http.ResponseWriter, r *http.Reque
 
 	// TODO: Pad the secret and the key
 	// ConstantTimeCompare exits early on mismatch length
-	return subtle.ConstantTimeCompare([]byte(key), []byte(secret)) == 1
+	return subtle.ConstantTimeCompare([]byte(key), secret) == 1
 }

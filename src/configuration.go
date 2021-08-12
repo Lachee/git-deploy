@@ -38,7 +38,7 @@ type projectConfig struct {
 	Name                string            `yaml:"name"`
 	ProjectDirectory    string            `yaml:"project"`
 	ConfigPath          string            `yaml:"config"`
-	Secret              []byte            `yaml:"secret"`
+	Secret              string            `yaml:"secret"`
 	Providers           []string          `yaml:"providers"`
 	Webhook             string            `yaml:"webhook"`
 	EnviromentVariables map[string]string `yaml:"env"`
