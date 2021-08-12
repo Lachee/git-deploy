@@ -1,8 +1,5 @@
 package main
 
-//TODO:
-// * use this file for SSH stuff https://github.com/melbahja/goph
-
 import (
 	"fmt"
 	"log"

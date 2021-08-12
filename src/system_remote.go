@@ -1,5 +1,9 @@
 package main
 
+// TODO: SSH Remote System
+// Use this library to do it:
+//	- https://github.com/melbahja/goph
+
 type remoteSystem struct {
 	root   string
 	config sshConfig
