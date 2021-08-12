@@ -4,7 +4,6 @@ package main
 // * use this file for SSH stuff https://github.com/melbahja/goph
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -49,36 +48,49 @@ func (p *project) readLocalConfig(system system) (localProjectConfig, error) {
 	return config.check()
 }
 
-//readBranch gets the branch of the current project
-func (p *project) getBranch(sys system) string {
-	branch, _ := gitCurrentBranch(sys)
-	return branch
-}
-
 //updateRepository performs a series of actions to update the codebase
-func (p *project) updateRepository(sys system) (bool, error) {
-	return true, nil
+func (p *project) updateRepository(git git) (bool, error) {
 
-	if p.config.Update != "" {
-		// TODO: Execute p.config.Update
-		cmd := shellCommand("", p.config.Update)
-		return true, cmd.Run()
+	var err error
+	var hasChange bool
+
+	// Check if there is a change
+	hasChange, err = git.hasChanges()
+	if err != nil {
+		log.Println("failed to check status change", err)
+		return false, err
 	}
 
-	/*
-		changed := false
-		status := git.status()
-		if status.hasChanges {
-			git.stash()
-			changed = git.pull()
-			git.stash("pop")
-		} else {
-			changed = git.pull()
+	// If there was a change, we need to handle stashes.
+	//  otherwise, we will just do a pull
+	if hasChange {
+		err = git.pushStash()
+		if err != nil {
+			log.Println("failed to stash", err)
+			return false, err
 		}
-		return changed, nil
-	*/
 
-	return false, errors.New("git clone: not yet implemented")
+		hasChange, err = git.pull()
+		if err != nil {
+			log.Println("failed to pull", err)
+			return false, err
+		}
+
+		err = git.popStash()
+		if err != nil {
+			log.Println("failed to pop", err)
+			return false, err
+		}
+	} else {
+		hasChange, err = git.pull()
+		if err != nil {
+			log.Println("failed to pull", err)
+			return false, err
+		}
+	}
+
+	// Return if we have changed.
+	return hasChange, nil
 }
 
 //deploy the project's latest changes
@@ -92,9 +104,11 @@ func (p *project) deploy() error {
 	var deployConfig deployConfig
 	var err error
 	var sys system
+	var git git
 
 	// TODO: Establish an SSH connection
 	sys = newLocalSystem(p.config.ProjectDirectory)
+	git = newGit(sys)
 
 	// Read the configuration
 	localConfig, err = p.readLocalConfig(sys)
@@ -102,9 +116,15 @@ func (p *project) deploy() error {
 		return err
 	}
 
-	// Check if the configurations apply to this branch
+	// Get active branch
+	branch, err := git.currentBranch()
+	if err != nil {
+		log.Println("failed to load git branch", err)
+		return err
+	}
+
+	// See if we can find a deploy for thsi branch
 	foundConfig := false
-	branch := p.getBranch(sys)
 	for _, dconfig := range localConfig.Deploys {
 		if containsStr(dconfig.Branches, branch) {
 			deployConfig = dconfig
@@ -117,7 +137,7 @@ func (p *project) deploy() error {
 	}
 
 	// Update the repository, if there was changes reload the configuration
-	gitChanged, gitError := p.updateRepository(sys)
+	gitChanged, gitError := p.updateRepository(git)
 	if gitError != nil {
 		return gitError
 	}

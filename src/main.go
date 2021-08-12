@@ -15,14 +15,13 @@ var (
 )
 
 func test() bool {
-	system := newLocalSystem("C:/Users/lachl/go/src/github.com/lachee/git-deploy")
-	branch, err := gitCurrentBranch(system)
-	if err != nil {
-		log.Fatalln("Failed to get the current branch", err)
-		return false
-	}
-	log.Println("Branch", branch)
-	return false
+	abort := false
+
+	// //filepath := "C:/Users/lachl/node/Lachee"
+	// filepath := "C:/Users/lachl/go/src/github.com/lachee/git-deploy"
+	//
+	// system := newLocalSystem(filepath)
+	return abort
 }
 
 //loadProject loads the configuration and finds the appropriate project.

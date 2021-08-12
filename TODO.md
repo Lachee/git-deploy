@@ -1,7 +1,7 @@
 # Complete Todo List
 
 - [x] Implement the `System` which will wrap both OS functions and Shell functions
-- [ ] GIT Pull
+- [x] GIT Pull
 - [ ] Make deploy() return a log history
 - [x] Implement composer deploy
 - [x] Implement npm deploy
