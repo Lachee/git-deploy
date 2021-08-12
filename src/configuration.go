@@ -38,7 +38,7 @@ type projectConfig struct {
 	Name                string            `yaml:"name"`
 	ProjectDirectory    string            `yaml:"project"`
 	ConfigPath          string            `yaml:"config"`
-	Secret              string            `yaml:"secret"`
+	Secret              []byte            `yaml:"secret"`
 	Providers           []string          `yaml:"providers"`
 	Webhook             string            `yaml:"webhook"`
 	EnviromentVariables map[string]string `yaml:"env"`
@@ -51,7 +51,7 @@ func (config projectConfig) check() (projectConfig, error) {
 	if config.ConfigPath == "" {
 		config.ConfigPath = "./git-deploy.yaml"
 	}
-	if config.Secret == "" {
+	if len(config.Secret) == 0 {
 		return config, fmt.Errorf("project %s has a missing secret", config.Name)
 	}
 	if config.ProjectDirectory == "" {
@@ -60,6 +60,8 @@ func (config projectConfig) check() (projectConfig, error) {
 	if config.ConfigPath == "" {
 		return config, fmt.Errorf("project %s does not have a valid config path", config.Name)
 	}
+
+	// TODO: Pad the secret
 	return config, nil
 }
 

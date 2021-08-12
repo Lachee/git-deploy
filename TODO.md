@@ -13,6 +13,7 @@
 - [ ] Implement Pre and Post runs.
 - [ ] Reload the configuration once we pull the changes
 - [ ] List of deploy names to execute. 
+- [ ] Pad secret key for ConstantTimeCompare
 
 # Complete Later
 - [ ] Add SSH support

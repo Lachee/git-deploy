@@ -20,11 +20,11 @@ var (
 //loadProject loads the configuration and finds the appropriate project.
 func loadProject(name string) (*project, error) {
 	// Load the configuration
-	configData, configError := loadConfiguration(configPath)
-	config = configData
-	if configError != nil {
-		log.Fatalln("Failed to parse configuration", configError)
-	}
+	// configData, configError := loadConfiguration(configPath)
+	// config = configData
+	// if configError != nil {
+	// 	log.Fatalln("Failed to parse configuration", configError)
+	// }
 
 	// Find the correct project
 	for _, pconfig := range config.Projects {
@@ -45,6 +45,13 @@ func main() {
 
 	// Set config path
 	configPath = *configPathPtr
+
+	// Load the configuration
+	configData, configError := loadConfiguration(configPath)
+	config = configData
+	if configError != nil {
+		log.Fatalln("Failed to parse configuration", configError)
+	}
 
 	// If we are early deploying, then do so
 	if *deployPtr != "" {
@@ -120,7 +127,7 @@ func routeProvider(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Ensure the provider is correct
-	verified := provider.verify(project, w, r)
+	verified := provider.verify(project.config.Secret, w, r)
 	if !verified {
 		w.Header().Add("X-Reason", "Not authorized")
 		w.WriteHeader(http.StatusUnauthorized)
