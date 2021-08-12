@@ -5,24 +5,17 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/didip/tollbooth"
 	"github.com/gorilla/mux"
 )
 
 var (
 	configPath string
 	config     globalConfig
+	processing map[string]time.Time = make(map[string]time.Time)
 )
-
-func test() bool {
-	abort := false
-
-	// //filepath := "C:/Users/lachl/node/Lachee"
-	// filepath := "C:/Users/lachl/go/src/github.com/lachee/git-deploy"
-	//
-	// system := newLocalSystem(filepath)
-	return abort
-}
 
 //loadProject loads the configuration and finds the appropriate project.
 func loadProject(name string) (*project, error) {
@@ -48,19 +41,10 @@ func main() {
 	addrPtr := flag.String("address", "localhost:7096", "IP address to bind the HTTP server to")
 	configPathPtr := flag.String("config", "./config.yaml", "path to the configuration")
 	deployPtr := flag.String("deploy", "", "project to immediately deploy and then abort")
-	testPtr := flag.Bool("test", false, "Runs a test function")
 	flag.Parse()
 
 	// Set config path
 	configPath = *configPathPtr
-
-	if *testPtr {
-		log.Println("Testing Function")
-		if test() {
-			log.Println("Aborted test")
-			return
-		}
-	}
 
 	// If we are early deploying, then do so
 	if *deployPtr != "" {
@@ -91,17 +75,20 @@ func main() {
 }
 
 //createRouter initializes the routes
-func createRouter() *mux.Router {
+func createRouter() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Setup the routes
-	//router.HandleFunc("/", routeBase)
-	router.HandleFunc("/{project}/deploy/", routeDeploy).
-		Methods("POST")
+	router.HandleFunc("/", routeBase)
 	router.HandleFunc("/{project}/deploy/{provider}", routeProvider).
 		Methods("POST")
 
-	return router
+	lmt := tollbooth.NewLimiter(0.5, nil)
+	lmt.
+		SetIPLookups([]string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"}).
+		SetMethods([]string{"POST", "PUT"})
+
+	return tollbooth.LimitHandler(lmt, router)
 }
 
 //routeBase handles any request that isn't matching
@@ -110,10 +97,55 @@ func routeBase(w http.ResponseWriter, r *http.Request) {
 }
 
 func routeProvider(w http.ResponseWriter, r *http.Request) {
-	// 1. Get provider
-	// 2. Validate provider auth
-}
+	vars := mux.Vars(r)
 
-func routeDeploy(w http.ResponseWriter, r *http.Request) {
-	// 1. Validate secret
+	// Ensure we have the project
+	project, err := loadProject(vars["project"])
+	if err != nil {
+		log.Println("cannot find the project:", vars["project"], err)
+		w.Header().Add("X-Reason", "Cannot find appropriate project")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("project does not exist"))
+		return
+	}
+
+	// Ensure we have the provider
+	provider := createProvider(vars["provider"])
+	if provider == nil {
+		log.Println("cannot find the provider:", vars["provider"])
+		w.Header().Add("X-Reason", "Cannot find appropriate provider")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("provider does not exist"))
+		return
+	}
+
+	// Ensure the provider is correct
+	verified := provider.verify(project, w, r)
+	if !verified {
+		w.Header().Add("X-Reason", "Not authorized")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("failed to verify provider"))
+		return
+	}
+
+	// Ensure we are not already deploying
+	_, alreadyDeploying := processing[project.config.Name]
+	if alreadyDeploying {
+		w.Header().Add("X-Reason", "Already deploying")
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte("failed to deploy because one is already in progress"))
+		return
+	}
+
+	// Deploy if we can on a new go-routine
+	processing[project.config.Name] = time.Now()
+	go func() {
+		project.deploy()
+		delete(processing, project.config.Name)
+	}()
+
+	// Return the status
+	w.Header().Add("X-Reason", "Deploying")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("deploying"))
 }

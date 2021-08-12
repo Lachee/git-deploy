@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 type system interface {
@@ -43,26 +44,28 @@ func (system *localSystem) rootDirectory() string { return system.root }
 
 //exec runs a command on the system
 func (system *localSystem) exec(cmd string, args ...string) ([]byte, error) {
-	os.Chdir(system.rootDirectory())
 	execCMD := exec.Command(cmd, args...)
+	execCMD.Dir = system.rootDirectory()
 	execCMD.Env = system.getEnviromentVariables()
 	return execCMD.Output()
 }
 
 //execShell using a specific shell
 func (system *localSystem) execShell(shell string, cmd string, args ...string) ([]byte, error) {
-	os.Chdir(system.rootDirectory())
 	if shell == "" {
 		shell = DEFAULT_SHELL
 	}
 	execCMD := exec.Command(shell, append([]string{cmd}, args...)...)
+	execCMD.Dir = system.rootDirectory()
 	execCMD.Env = system.getEnviromentVariables()
 	return execCMD.Output()
 }
 
 //read a file from the system
 func (system *localSystem) read(filePath string) ([]byte, error) {
-	os.Chdir(system.rootDirectory())
+	if !filepath.IsAbs(filePath) {
+		filePath = filepath.Join(system.rootDirectory(), filePath)
+	}
 	return ioutil.ReadFile(filePath)
 }
 

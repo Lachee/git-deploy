@@ -6,6 +6,7 @@
 - [x] Implement npm deploy
 - [ ] Add web API
 - [ ] Add webhook API
+- [ ] Add ratelimit
 - [x] Implement enviroment variables
 - [ ] Add authentication
 - [ ] Make deployment happen on a new go routine to not block the main thread
