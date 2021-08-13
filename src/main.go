@@ -9,6 +9,7 @@ import (
 
 	"github.com/didip/tollbooth"
 	"github.com/gorilla/mux"
+	"github.com/lachee/git-deploy/src/web"
 )
 
 var (
@@ -87,8 +88,11 @@ func createRouter() http.Handler {
 
 	// Setup the routes
 	router.HandleFunc("/", routeBase)
-	router.HandleFunc("/{project}/deploy/{provider}", routeProvider).
-		Methods("POST")
+	router.HandleFunc("/{project}/deploy/{provider}", func(w http.ResponseWriter, r *http.Request) {
+		response := handleAPI(w, r)
+		response.SetContentTypeFromRequest(r)
+		response.Write(w)
+	}).Methods("POST")
 
 	lmt := tollbooth.NewLimiter(1.0/30.0, nil)
 	lmt.
@@ -103,45 +107,32 @@ func routeBase(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "https://github.com/Lachee/git-deploy", http.StatusTemporaryRedirect)
 }
 
-func routeProvider(w http.ResponseWriter, r *http.Request) {
+func handleAPI(w http.ResponseWriter, r *http.Request) web.Response {
 	vars := mux.Vars(r)
 
 	// Ensure we have the project
 	project, err := loadProject(vars["project"])
 	if err != nil {
-		log.Println("cannot find the project:", vars["project"], err)
-		w.Header().Add("X-Reason", "Cannot find appropriate project")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("project does not exist"))
-		return
+		return web.NewErrorResponse(http.StatusNotFound, err)
 	}
 
 	// Ensure we have the provider
 	provider := createProvider(vars["provider"])
 	if provider == nil {
 		log.Println("cannot find the provider:", vars["provider"])
-		w.Header().Add("X-Reason", "Cannot find appropriate provider")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("provider does not exist"))
-		return
+		return web.NewErrorResponse(http.StatusNotFound, errors.New("provider cannot be found"))
 	}
 
 	// Ensure the provider is correct
 	verified := provider.verify([]byte(project.config.Secret), w, r)
 	if !verified {
-		w.Header().Add("X-Reason", "Not authorized")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("failed to verify provider"))
-		return
+		return web.NewErrorResponse(http.StatusUnauthorized, errors.New("unauthorized"))
 	}
 
 	// Ensure we are not already deploying
 	_, alreadyDeploying := processing[project.config.Name]
 	if alreadyDeploying {
-		w.Header().Add("X-Reason", "Already deploying")
-		w.WriteHeader(http.StatusConflict)
-		w.Write([]byte("failed to deploy because one is already in progress"))
-		return
+		return web.NewErrorResponse(http.StatusConflict, errors.New("already deploying"))
 	}
 
 	// Deploy if we can on a new go-routine
@@ -152,7 +143,5 @@ func routeProvider(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Return the status
-	w.Header().Add("X-Reason", "Deploying")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("deploying"))
+	return web.NewResponse(http.StatusOK, "deployed")
 }
