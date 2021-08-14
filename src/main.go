@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,6 +16,7 @@ import (
 var (
 	configPath string
 	config     globalConfig
+	rateLimit  float64
 	processing map[string]time.Time = make(map[string]time.Time)
 )
 
@@ -42,10 +44,12 @@ func main() {
 	addrPtr := flag.String("address", "localhost:7096", "IP address to bind the HTTP server to")
 	configPathPtr := flag.String("config", "./config.yaml", "path to the configuration")
 	deployPtr := flag.String("deploy", "", "project to immediately deploy and then abort")
+	rateLimitPtr := flag.Float64("ratelimit", 1.0/5.0, "the ratelimit")
 	flag.Parse()
 
 	// Set config path
 	configPath = *configPathPtr
+	rateLimit = *rateLimitPtr
 
 	// Load the configuration
 	configData, configError := loadConfiguration(configPath)
@@ -91,10 +95,13 @@ func createRouter() http.Handler {
 	router.HandleFunc("/{project}/deploy/{provider}", func(w http.ResponseWriter, r *http.Request) {
 		response := handleAPI(w, r)
 		response.SetContentTypeFromRequest(r)
-		response.Write(w)
+		if err := response.Write(w); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintln("an error occured: ", err)))
+		}
 	}).Methods("POST")
 
-	lmt := tollbooth.NewLimiter(1.0/30.0, nil)
+	lmt := tollbooth.NewLimiter(rateLimit, nil)
 	lmt.
 		SetIPLookups([]string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"}).
 		SetMethods([]string{"POST", "PUT"})

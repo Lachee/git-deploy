@@ -81,7 +81,7 @@ func GetRecommendedContentType(data interface{}) string {
 }
 
 // SetContentType sets the content type from the request, normally text/plain.
-func (response Response) SetContentType(contentType string) {
+func (response *Response) SetContentType(contentType string) {
 	response.contentType = contentType
 }
 
@@ -89,8 +89,8 @@ func (response Response) SetContentType(contentType string) {
  SetContentTypeFromRequest reads the `content-type` header from the request and uses that for the response.
  Returns the new content type.
 */
-func (response Response) SetContentTypeFromRequest(r *http.Request) string {
-	contentType := r.Header.Get("content-type")
+func (response *Response) SetContentTypeFromRequest(r *http.Request) string {
+	contentType := r.Header.Get("Content-type")
 	if contentType != "" {
 		response.contentType = contentType
 	}
@@ -98,12 +98,12 @@ func (response Response) SetContentTypeFromRequest(r *http.Request) string {
 }
 
 // Sets the data of the response
-func (response Response) SetData(data interface{}) {
+func (response *Response) SetData(data interface{}) {
 	response.data = data
 }
 
 // Writes the response to the response writer
-func (response Response) Write(w http.ResponseWriter) error {
+func (response *Response) Write(w http.ResponseWriter) error {
 
 	// Encode the body
 	data, encodeErr := response.encodeBody()
@@ -131,15 +131,13 @@ func (response Response) Write(w http.ResponseWriter) error {
 }
 
 // encodeBody returns the binary representation of data, based of Content-Type
-func (response Response) encodeBody() ([]byte, error) {
+func (response *Response) encodeBody() ([]byte, error) {
 	contentType := response.contentType
 	switch contentType {
 	default:
 		switch response.data.(type) {
 		case string:
-		case int:
-		case float64:
-		case bool:
+			return []byte(response.data.(string)), nil
 		case []byte:
 			return response.data.([]byte), nil
 		default:
@@ -153,5 +151,5 @@ func (response Response) encodeBody() ([]byte, error) {
 	case "application/xml":
 		return xml.Marshal(response.data)
 	}
-	return nil, errors.New("Invalid content type")
+	return nil, errors.New("invalid content type")
 }
